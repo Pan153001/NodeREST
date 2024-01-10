@@ -2,12 +2,12 @@ const express = require('express');
 const sqlite3 = require('sqlite3');
 const app = express();
 
-const db = new sqlite3.Database('./Database/Books.sqlite');
+const db = new sqlite3.Database('./Database/Book/sqlite');
 
 app.use(express.json());
 
 db.run(`CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KET,
     title TEXT,
     author TEXT
 )`);
@@ -17,7 +17,7 @@ app.get('/books', (req, res) => {
         if (err ) {
             res.status(500).send(err);
         } else {
-            res.json(rows);
+            res.json(row);
         }
     });
 });
@@ -36,7 +36,7 @@ app.get('/book/:id', (req, res) => {
     });
 });
 
-app.post('/books', (req, res) => {
+app.post('/books/:id', (req, res) => {
     const book = req.body;
     db.run('INSERT INTO books (title, author) VALUES (?, ?)', book.title, book.author, function(err) {
         if(err) {
@@ -69,5 +69,5 @@ app.delete('/books/:id', (req, res) => {
     });
 });
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`));
+const port = process.env.PORT || 300;
+app.listen(port, () => console.log(`listening on port ${port}...`));
