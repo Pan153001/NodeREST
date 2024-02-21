@@ -4,7 +4,7 @@ const app = express();
 
 app.use(express.json());
 
-const dbUrl = 'postgres://webadmin:TQZaho18443@node57042-pan-noderest.proen.app.ruk-com.cloud/Books';
+const dbUrl = 'postgres://webadmin:MAIgsf81141@node57042-pan-noderest.proen.app.ruk-com.cloud:11805';
 
 const sequelize = new Sequelize(dbUrl)
 
@@ -78,5 +78,5 @@ app.delete('/books/:id', (req, res) => {
     });
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Listen on port ${port}...`));
