@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 mongoose.connect(
     "mongodb://admin:ZPKryi29668@node57052-pan-noderest.proen.app.ruk-com.cloud",
@@ -21,6 +22,7 @@ const Book = mongoose.model("Book",{
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 app.post("/books", async (req, res) => {
     try {
