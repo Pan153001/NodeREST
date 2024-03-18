@@ -1,28 +1,41 @@
-const express = require("express");
-const Sequelize = require('sequelize');
-const app = express();
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 
-app.use(express.json()); // This middleware should be called before defining routes
-
-const sequelize = new Sequelize('database','username','password', {
-    host: 'localhost',
-    dialect: 'sqlite',
-    storage: './Database/SQBooks.sqlite'
+mongoose.connect(
+    "mongodb://admin:ZPKryi29668@node57052-pan-noderest.proen.app.ruk-com.cloud",
+    {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    }
+)
+const Book = mongoose.model("Book",{
+    id: {
+        type: Number,
+        unique: true,
+        required: true,
+    },
+    title: String,
+    author: String,
 });
 
-const Book = sequelize.define('book',{
-    id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
-    },
-    title: {
-        type: Sequelize.STRING,
-        allowNull:false
-    },
-    author: {
-        type: Sequelize.STRING,
-        allowNull: false
+const app = express();
+app.use(bodyParser.json());
+
+app.post("/books", async (req, res) => {
+    try {
+        const lastBook = await Book.findOne().sort({ id: -1});
+        const nextId = lastBook ? lastBook.id + 1 : 1;
+
+        const book = new Book ({
+            id: nextId,
+            ...req.body,
+        });
+
+        await book.save();
+        res.send(book);
+    } catch (error) {
+        res.status(500).send(error);
     }
 });
 
