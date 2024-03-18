@@ -1,82 +1,92 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-
-mongoose.connect(
-    "mongodb://admin:ZPKryi29668@node57052-pan-noderest.proen.app.ruk-com.cloud",
-    {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    }
-)
-const Book = mongoose.model("Book",{
-    id: {
-        type: Number,
-        unique: true,
-        required: true,
-    },
-    title: String,
-    author: String,
-});
-
+const express = require("express");
+const Sequelize = require('sequelize');
 const app = express();
-app.use(bodyParser.json());
 
-app.post("/books", async (req, res) => {
-    try {
-        const lastBook = await Book.findOne().sort({ id: -1});
-        const nextId = lastBook ? lastBook.id + 1 : 1;
+app.use(express.json()); // This middleware should be called before defining routes
 
-        const book = new Book ({
-            id: nextId,
-            ...req.body,
-        });
+const sequelize = new Sequelize('database','username','password', {
+    host: 'localhost',
+    dialect: 'sqlite',
+    storage: './Database/SQBooks.sqlite'
+});
 
-        await book.save();
+const Book = sequelize.define('book',{
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    title: {
+        type: Sequelize.STRING,
+        allowNull:false
+    },
+    author: {
+        type: Sequelize.STRING,
+        allowNull: false
+    }
+});
+
+sequelize.sync();
+
+app.get('/books', (req, res) => {
+    Book.findAll().then(books => {
+        res.json(books);
+    }).catch(err => {
+        res.status(500).send(err);
+    });
+});
+
+app.get('/books/:id', (req, res) => {
+    Book.findByPk(req.params.id).then(book => {
+        if (!book){
+            res.status(404).send('book not found');
+        } else {
+            res.json(book);
+        }
+    }).catch(err => {
+        res.status(500).send(err);
+    });
+});
+
+app.post('/books', (req, res) => {
+    Book.create(req.body).then(book => {
         res.send(book);
-    } catch (error) {
-        res.status(500).send(error);
-    }
+    }).catch(err => {
+        res.status(500).send(err);
+    });
 });
 
-app.get("/books", async (req, res) => {
-    try {
-        const books = await Book.find();
-        res.send(books);
-    } catch (error) {
-        res.status(500).send(error);
-    }
+app.put('/books/:id', (req, res) => {
+    Book.findByPk(req.params.id).then(book => {
+        if(!book) {
+            res.status(404).send('Book not found');
+        } else {
+            book.update(req.body).then(() => { // Corrected from req, body to req.body
+                res.send(book);
+            }).catch(err => {
+                res.status(500).send(err);
+            });
+        }
+    }).catch(err => {
+        res.status(500).send(err);
+    });
 });
 
-app.get("/books/:id", async (req, res) => {
-    try {
-        const book = await Book.findOne({id:req.params.id});
-    } catch (error) {
-        res.status(500).send(error);
-    }
+app.delete('/books/:id', (req, res) => {
+    Book.findByPk(req.params.id).then(book => {
+        if(!book) {
+            res.status(404).send('Book not found');
+        } else {
+            book.destroy().then(() => {
+                res.send({});
+            }).catch(err => {
+                res.status(500).send(err);
+            });
+        }
+    }).catch(err => {
+        res.status(500).send(err);
+    });
 });
 
-app.put("/books/:id",async (req, res) => {
-    try {
-        const book = await Book.findOneAndUpdate({id:req.params.id},req.body, {
-            new: true,
-        });
-        res.send(book);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-});
-
-app.delete("/books/:id", async (req, res) => {
-    try {
-        const book = await Book.findOneAndDelete({id:req.params.id});
-        res.send(book);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server started at http://localhost:${PORT}`);
-})
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Listen on port ${port}...`));
